@@ -1,2 +1,25 @@
-# Enterprise-RAG-Sytem
-Enterprise RAG System: AI-powered document intelligence platform using LangChain, OpenAI GPT, and ChromaDB. Upload PDFs, DOCX, TXT, CSV, or URLs and chat with your documents for contextual answers with source references.
+# Enterprise RAG System 🤖
+
+**Description:** AI-powered system to upload, process, and chat with documents (PDF, DOCX, TXT, CSV, URLs). Built with LangChain, ChromaDB, and OpenAI. Conversational retrieval with memory and vector search.
+
+## Features
+- Upload multiple documents and URLs
+- Vector database for semantic search
+- Conversational AI with OpenAI models
+- Clear conversation and memory management
+- Source reference display for answers
+
+## Tech Stack
+- **Frontend:** Streamlit
+- **Backend/AI:** LangChain, OpenAI API
+- **Vector Store:** ChromaDB
+- **Programming Language:** Python
+
+## Installation
+```bash
+git clone https://github.com/OmShingare/Enterprise-RAG-Sytem.git
+cd Enterprise-RAG-Sytem
+python -m venv venv
+venv\Scripts\activate   # Windows
+# or source venv/bin/activate  # Linux/Mac
+pip install -r requirements.txt
