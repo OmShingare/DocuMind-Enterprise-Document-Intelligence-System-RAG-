@@ -2,7 +2,7 @@
 
 **Description:** AI-powered system to upload, process, and chat with documents (PDF, DOCX, TXT, CSV, URLs). Built with LangChain, ChromaDB, and OpenAI. Conversational retrieval with memory and vector search.
 
-Project is Live on Streamlit - https://5hfm6ljjxw7ftlxzidgscc.streamlit.app/
+Project is Live on Streamlit - https://aed7npknnhvtuqxyt3ewnh.streamlit.app/
 
 ## Features
 - Upload multiple documents and URLs
