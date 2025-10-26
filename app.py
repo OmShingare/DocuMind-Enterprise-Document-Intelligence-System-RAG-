@@ -1,9 +1,10 @@
+import os
+import shutil
 import streamlit as st
 from langchain.memory import ConversationBufferMemory
 from src.document_processor import DocumentProcessor
 from src.vector_store import VectorStoreManager
 from src.llm_handler import LLMHandler
-from src.retriever import Retriever
 
 st.set_page_config(
     page_title="Enterprise RAG System",
@@ -58,11 +59,25 @@ with st.sidebar:
         placeholder="https://example.com/article1\nhttps://example.com/article2"
     )
 
-    # Process Documents
+    # ------------------ Process Documents ------------------
     if st.button("🚀 Process Documents", type="primary"):
         if uploaded_files or urls_input.strip():
             with st.spinner("Processing documents... This may take a moment."):
                 try:
+                    vector_manager = VectorStoreManager()
+
+                    # Close old vector store safely
+                    if st.session_state.vector_store:
+                        try:
+                            st.session_state.vector_store._client = None
+                        except:
+                            pass
+                        st.session_state.vector_store = None
+
+                    # Delete old ChromaDB folder safely
+                    if os.path.exists(vector_manager.persist_directory):
+                        shutil.rmtree(vector_manager.persist_directory)
+
                     processor = DocumentProcessor()
                     all_chunks = []
                     progress_bar = st.progress(0)
@@ -93,10 +108,10 @@ with st.sidebar:
                             all_chunks.extend(url_chunks)
                             progress_bar.progress((idx + 1) / (len(uploaded_files) + len(urls)))
 
-                    # Create vector store
-                    vector_manager = VectorStoreManager()
+                    # Create new vector store
                     vector_store = vector_manager.create_vector_store(all_chunks)
                     st.session_state.vector_store = vector_store
+                    st.session_state.retriever = vector_store.as_retriever(search_kwargs={"k": 5})
 
                     st.success(f"✅ Successfully processed {len(all_chunks)} chunks from all sources!")
 
@@ -105,21 +120,37 @@ with st.sidebar:
         else:
             st.warning("⚠️ Please upload at least one document or enter URLs.")
 
-    # Document Stats
+    # ------------------ Document Stats ------------------
     if st.session_state.vector_store:
         st.divider()
         st.subheader("📊 Document Stats")
         st.info("Documents loaded and ready!")
 
-    # Clear Conversation
-    st.divider()
-    if st.button("🗑️ Clear Conversation"):
+    # ------------------ Clear All ------------------
+    if st.button("🗑️ Clear All"):
         st.session_state.messages = []
         st.session_state.memory.clear()
         st.session_state.llm_handler.clear_memory()
+
+        # Close and delete vector store
+        if 'vector_store' in st.session_state and st.session_state.vector_store:
+            try:
+                st.session_state.vector_store._client = None
+            except:
+                pass
+            st.session_state.vector_store = None
+        if 'retriever' in st.session_state:
+            del st.session_state.retriever
+
+        # Delete persisted ChromaDB folder safely
+        vector_manager = VectorStoreManager()
+        if os.path.exists(vector_manager.persist_directory):
+            shutil.rmtree(vector_manager.persist_directory)
+
+        st.success("Cleared conversation and document data!")
         st.rerun()
 
-    # LLM Settings
+    # ------------------ LLM Settings ------------------
     with st.expander("⚙️ Settings"):
         model_choice = st.selectbox(
             "LLM Model",
@@ -170,9 +201,6 @@ if prompt := st.chat_input("💬 Ask a question about your documents..."):
         with st.chat_message("assistant"):
             with st.spinner("🤔 Analyzing documents..."):
                 try:
-                    # Cache retriever for performance
-                    if 'retriever' not in st.session_state:
-                        st.session_state.retriever = st.session_state.vector_store.as_retriever( search_type="similarity", search_kwargs={"k": 5})
                     qa_chain = st.session_state.llm_handler.create_qa_chain(st.session_state.retriever)
                     result = qa_chain.invoke({"question": prompt})
 

@@ -5,7 +5,7 @@ from langchain.prompts import PromptTemplate
 from dotenv import load_dotenv
 
 class LLMHandler:
-    def __init__(self, model_name="gpt-4o-mini", memory=None, temperature=0.7):
+    def __init__(self, model_name="gpt-4o-mini", memory=None, temperature=0.7,max_tokens=500):
         load_dotenv()
 
         self.memory = memory if memory else ConversationBufferMemory(
@@ -16,7 +16,7 @@ class LLMHandler:
 
         openai_models = ["gpt-4o-mini", "gpt-4o", "gpt-3.5-turbo"]
         if model_name in openai_models:
-            self.llm = ChatOpenAI(model_name=model_name, temperature=temperature)
+            self.llm = ChatOpenAI(model_name=model_name, temperature=temperature,max_tokens=max_tokens)
         else:
             raise ValueError(f"Model {model_name} not supported. Choose from {openai_models}")
 
